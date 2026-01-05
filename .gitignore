@@ -1,0 +1,58 @@
+# User/system files
+.bash_history
+.ssh/
+.cache/
+.config/
+.profile
+.bashrc
+.bash_logout
+.lesshst
+.sudo_as_admin_successful
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp
+*.bak
+*.backup
+*~
+
+# Sensitive data
+*.pem
+*.key
+*.crt
+id_rsa*
+id_dsa*
+id_ed25519*
+authorized_keys
+known_hosts
+credentials.txt
+passwords.txt
+.env
+.secret
+
+# Script-specific logs
+create_harden_user.log
+user_creation.log
+/var/log/user_creation.log
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Git files (except .gitignore)
+!.gitignore
+
+# Compiled files
+*.pyc
+__pycache__/
+
+# AWS/EC2
+.aws/
+ec2-metadata
