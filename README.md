@@ -1,3 +1,87 @@
+
+Post-Installation Configuration:
+Change Password: First login requires password change
+
+Configure Powerlevel10k: Run p10k configure
+
+Test SSH: Verify connection on custom port
+
+AWS Users: Update Security Group for custom SSH port
+
+🔒 Security Features Breakdown
+SSH Security:
+✅ ED25519 keys (modern, secure)
+
+✅ Password authentication disabled
+
+✅ Root login disabled
+
+✅ Custom SSH port
+
+✅ Rate limiting (MaxAuthTries 3)
+
+✅ Session timeout (ClientAliveInterval 300)
+
+✅ Strict cryptography settings
+
+✅ No X11 forwarding
+
+✅ No port/agent forwarding
+
+File Permissions:
+Home directory: 700 (user only)
+
+.ssh directory: 700
+
+SSH keys: 600 (private), 644 (public)
+
+authorized_keys: 600
+
+/etc/ssh/sshd_config: 600
+
+/etc/sudoers.d/: 440
+
+System Security:
+Automatic security updates
+
+UFW firewall enabled
+
+Fail2Ban intrusion prevention
+
+Auditd system auditing
+
+Password policy enforcement
+
+Login attempt limits
+
+Secure kernel parameters
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Ubuntu Security & Hardening Scripts
 
 A collection of bash scripts for securing and hardening Ubuntu servers.
