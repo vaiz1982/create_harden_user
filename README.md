@@ -218,12 +218,10 @@ sudo ./create_secure_user.sh
 
 
 
-**Usage:**
-```bash
-sudo ./create_secure_user.sh
+ 
 
 
  
 
-Now your SSH keys will be named with the username, making them much easier to identify and manage!
+ 
 
