@@ -1,3 +1,6 @@
+ansible-playbook -i inventory fix_ssh_and_user_recovery.yml
+
+
 
 
 
