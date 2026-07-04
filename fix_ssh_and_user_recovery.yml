@@ -1,0 +1,135 @@
+---
+- name: Fix SSH + User Lockout Recovery Playbook
+  hosts: all
+  become: yes
+
+  vars:
+    ssh_port_primary: 22
+    ssh_port_secondary: 2222
+    allow_password_auth: true   # IMPORTANT: recovery mode ON
+
+  tasks:
+
+  # =========================
+  # 1. RESTORE SSH ACCESS SAFELY
+  # =========================
+  - name: Ensure SSH is installed
+    apt:
+      name: openssh-server
+      state: present
+
+  - name: Backup current sshd_config
+    copy:
+      src: /etc/ssh/sshd_config
+      dest: /etc/ssh/sshd_config.recovery.bak
+      remote_src: yes
+
+  - name: Ensure SSH allows password auth (RECOVERY MODE)
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: '^#?PasswordAuthentication'
+      line: "PasswordAuthentication yes"
+
+  - name: Ensure pubkey auth enabled
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: '^#?PubkeyAuthentication'
+      line: "PubkeyAuthentication yes"
+
+  - name: Ensure root login is disabled (safe default)
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: '^#?PermitRootLogin'
+      line: "PermitRootLogin no"
+
+  - name: Ensure SSH listens on port 22 (critical recovery)
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: '^#?Port'
+      line: "Port 22"
+
+  - name: Remove dangerous AllowUsers restrictions if present
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: '^AllowUsers'
+      state: absent
+
+  - name: Remove DenyUsers if present
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: '^DenyUsers'
+      state: absent
+
+  - name: Validate SSH config
+    command: sshd -t
+    register: ssh_check
+    changed_when: false
+
+  - name: Restart SSH safely
+    service:
+      name: ssh
+      state: restarted
+
+  # =========================
+  # 2. FIX PASSWORD POLICY (YOUR ERROR SOURCE)
+  # =========================
+  - name: Install pwquality
+    apt:
+      name: libpam-pwquality
+      state: present
+
+  - name: Relax password policy (avoid lockouts)
+    copy:
+      dest: /etc/security/pwquality.conf
+      content: |
+        minlen = 10
+        minclass = 2
+        maxrepeat = 5
+        maxsequence = 4
+        maxclassrepeat = 4
+        dictcheck = 1
+        gecoscheck = 0
+
+  # =========================
+  # 3. ENSURE USER CAN LOGIN
+  # =========================
+  - name: Unlock user if locked
+    command: passwd -u {{ ansible_user | default('ubuntu') }}
+    ignore_errors: yes
+
+  - name: Reset failed login attempts
+    command: faillock --reset
+    ignore_errors: yes
+
+  # =========================
+  # 4. FIX SUDO ACCESS (COMMON BREAK ISSUE)
+  # =========================
+  - name: Ensure sudo group exists
+    group:
+      name: sudo
+      state: present
+
+  - name: Ensure user is in sudo group
+    user:
+      name: "{{ ansible_user | default('ubuntu') }}"
+      groups: sudo
+      append: yes
+
+  # =========================
+  # 5. FIX HOSTNAME ISSUES (you saw this earlier)
+  # =========================
+  - name: Fix /etc/hosts for hostname resolution
+    lineinfile:
+      path: /etc/hosts
+      line: "127.0.1.1 {{ inventory_hostname }}"
+      state: present
+
+  # =========================
+  # 6. FIX APT DNS ISSUE (you had this too)
+  # =========================
+  - name: Ensure DNS works (resolv.conf safe mode)
+    copy:
+      dest: /etc/resolv.conf
+      content: |
+        nameserver 8.8.8.8
+        nameserver 1.1.1.1
